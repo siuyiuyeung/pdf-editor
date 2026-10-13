@@ -25,7 +25,7 @@ export const TOOLS: ToolDef[] = [
   { slug: 'split-pdf', title: 'Split PDF', subtitle: 'Extract pages or split into several files', group: 'organize', accept: PDF, multiple: false, engine: 'client', available: true },
   { slug: 'merge-pdf', title: 'Merge PDF', subtitle: 'Combine PDFs in the order you want', group: 'organize', accept: PDF, multiple: true, engine: 'client', available: true },
   { slug: 'compress-pdf', title: 'Compress PDF', subtitle: 'Reduce PDF file size', group: 'compress', accept: PDF, multiple: false, engine: 'server', available: false },
-  { slug: 'edit-pdf', title: 'Edit PDF', subtitle: 'Add text, shapes, images and highlights', group: 'edit', accept: PDF, multiple: false, engine: 'client', available: false },
+  { slug: 'edit-pdf', title: 'Edit PDF', subtitle: 'Add text, shapes, images and highlights', group: 'edit', accept: PDF, multiple: false, engine: 'client', available: true },
   { slug: 'watermark-pdf', title: 'Watermark PDF', subtitle: 'Stamp text or an image on your pages', group: 'edit', accept: PDF, multiple: false, engine: 'client', available: true },
   { slug: 'rotate-pdf', title: 'Rotate PDF', subtitle: 'Rotate one page or all of them', group: 'edit', accept: PDF, multiple: false, engine: 'client', available: true },
   { slug: 'sign-pdf', title: 'Sign PDF', subtitle: 'Draw, type or upload your signature', group: 'sign', accept: PDF, multiple: false, engine: 'client', available: true },

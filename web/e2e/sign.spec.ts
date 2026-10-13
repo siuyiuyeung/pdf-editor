@@ -46,9 +46,9 @@ test('a typed signature can be moved, deleted and restored with undo', async ({ 
   await page.mouse.down();
   await page.mouse.move(before.x + before.width / 2 + 40, before.y + before.height / 2 + 30, { steps: 5 });
   await page.mouse.up();
-  const after = (await placed.boundingBox())!;
-  expect(after.x - before.x).toBeGreaterThan(30);
-  expect(after.y - before.y).toBeGreaterThan(20);
+  // Pointer moves render at React's continuous priority, so poll rather than read once.
+  await expect.poll(async () => (await placed.boundingBox())!.x - before.x).toBeGreaterThan(30);
+  await expect.poll(async () => (await placed.boundingBox())!.y - before.y).toBeGreaterThan(20);
 
   await page.keyboard.press('Delete');
   await expect(placed).toHaveCount(0);
