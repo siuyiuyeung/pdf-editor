@@ -2,8 +2,8 @@ import { expect, test } from 'vitest';
 import { engines } from '@/lib/pdf/engines';
 import { input, makeEncryptedPdf, makePdf, makePng, tinyJpeg } from './helpers';
 
-test('registry exposes validate, merge, split, rotate', () => {
-  expect(Object.keys(engines).sort()).toEqual(['merge', 'rotate', 'split', 'validate']);
+test('registry exposes the worker engines', () => {
+  expect(Object.keys(engines).sort()).toEqual(['imageToPdf', 'merge', 'rotate', 'split', 'validate']);
 });
 
 test('validate passes good PDFs and returns no output', async () => {
