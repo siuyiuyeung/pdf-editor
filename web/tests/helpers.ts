@@ -126,15 +126,19 @@ export function withExifOrientation(jpeg: Uint8Array, orientation: number, littl
   return Uint8Array.from([...jpeg.slice(0, 2), 0xff, 0xe1, len >> 8, len & 255, ...payload, ...jpeg.slice(2)]);
 }
 
-/** Number of image XObjects referenced from each page's resources. */
+/**
+ * Number of distinct image XObjects referenced from each page's resources. pdf-lib registers a new
+ * resource name on every drawImage call, so the same image drawn twice is counted once.
+ */
 export async function imageCounts(bytes: Uint8Array): Promise<number[]> {
   const doc = await PDFDocument.load(bytes);
   return doc.getPages().map((page) => {
     const xobjects = page.node.Resources()?.lookupMaybe(PDFName.of('XObject'), PDFDict);
     if (!xobjects) return 0;
-    return xobjects.entries().filter(([, ref]) => {
+    const images = xobjects.entries().filter(([, ref]) => {
       const obj = doc.context.lookup(ref);
       return obj instanceof PDFStream && obj.dict.get(PDFName.of('Subtype')) === PDFName.of('Image');
-    }).length;
+    });
+    return new Set(images.map(([, ref]) => ref.toString())).size;
   });
 }

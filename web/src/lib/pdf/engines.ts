@@ -1,5 +1,6 @@
 import { extensionOf } from '../files';
 import { readImageInfo } from '../image';
+import { annotate } from './annotate';
 import { PdfToolError } from './errors';
 import { imageToPdf } from './imageToPdf';
 import { loadPdf } from './load';
@@ -18,6 +19,6 @@ const validate: Engine<Record<string, never>> = async (inputs) => {
   return [];
 };
 
-export const engines = { validate, merge, split, rotate, imageToPdf, watermark };
+export const engines = { validate, merge, split, rotate, imageToPdf, watermark, annotate };
 
 export type EngineName = keyof typeof engines;
