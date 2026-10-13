@@ -2,6 +2,7 @@ import type { ComponentType } from 'react';
 import type { EngineName } from '@/lib/pdf/engines';
 import type { InputFile } from '@/lib/pdf/types';
 import { MergeWorkspace } from './MergeWorkspace';
+import { RotateWorkspace } from './RotateWorkspace';
 import { SplitWorkspace } from './SplitWorkspace';
 
 export interface WorkspaceProps {
@@ -15,4 +16,5 @@ export interface WorkspaceProps {
 export const WORKSPACES: Record<string, ComponentType<WorkspaceProps>> = {
   'merge-pdf': MergeWorkspace,
   'split-pdf': SplitWorkspace,
+  'rotate-pdf': RotateWorkspace,
 };
