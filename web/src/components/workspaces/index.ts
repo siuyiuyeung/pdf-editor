@@ -6,6 +6,7 @@ import { ImageToPdfWorkspace } from './ImageToPdfWorkspace';
 import { MergeWorkspace } from './MergeWorkspace';
 import { PdfToJpgWorkspace, PdfToPngWorkspace } from './PdfToImageWorkspace';
 import { RotateWorkspace } from './RotateWorkspace';
+import { SignWorkspace } from './SignWorkspace';
 import { SplitWorkspace } from './SplitWorkspace';
 import { WatermarkWorkspace } from './WatermarkWorkspace';
 
@@ -27,4 +28,5 @@ export const WORKSPACES: Record<string, ComponentType<WorkspaceProps>> = {
   'pdf-to-jpg': PdfToJpgWorkspace,
   'pdf-to-png': PdfToPngWorkspace,
   'watermark-pdf': WatermarkWorkspace,
+  'sign-pdf': SignWorkspace,
 };
