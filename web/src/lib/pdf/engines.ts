@@ -6,6 +6,7 @@ import { loadPdf } from './load';
 import { merge } from './merge';
 import { rotate } from './rotate';
 import { split } from './split';
+import { watermark } from './watermark';
 import type { Engine } from './types';
 
 /** Checks every input at selection time: PDFs are parsed (ENCRYPTED / INVALID_FILE), images are sniffed (INVALID_IMAGE). */
@@ -17,6 +18,6 @@ const validate: Engine<Record<string, never>> = async (inputs) => {
   return [];
 };
 
-export const engines = { validate, merge, split, rotate, imageToPdf };
+export const engines = { validate, merge, split, rotate, imageToPdf, watermark };
 
 export type EngineName = keyof typeof engines;
