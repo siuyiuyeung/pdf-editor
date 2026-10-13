@@ -19,7 +19,7 @@ test('server engine exactly for compress and office tools', () => {
 
 test('enabled tools', () => {
   expect(TOOLS.filter((t) => t.available).map((t) => t.slug).sort()).toEqual([
-    'image-to-pdf', 'merge-pdf', 'rotate-pdf', 'split-pdf',
+    'image-to-pdf', 'merge-pdf', 'pdf-to-jpg', 'pdf-to-png', 'rotate-pdf', 'split-pdf',
   ]);
 });
 

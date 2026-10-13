@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { extensionOf, readInputs } from '@/lib/files';
 import { takeHandoff } from '@/lib/handoff';
 import { runEngine } from '@/lib/pdf/client';
-import type { EngineName } from '@/lib/pdf/engines';
+import { runTool, type ToolEngine } from '@/lib/pdf/run';
 import { toToolError, type PdfToolError } from '@/lib/pdf/errors';
 import type { InputFile, OutputFile } from '@/lib/pdf/types';
 import { usePreventWindowDrop } from '@/lib/usePreventWindowDrop';
@@ -61,11 +61,11 @@ export function ToolShell({ slug }: { slug: string }) {
   }, [tool, accept]);
 
   const run = useCallback(
-    async (engine: EngineName, opts: unknown) => {
+    async (engine: ToolEngine, opts: unknown) => {
       setBusy(true);
       setError(null);
       try {
-        setOutputs(await runEngine(engine, inputs, opts));
+        setOutputs(await runTool(engine, inputs, opts));
       } catch (e) {
         setError(toToolError(e));
       } finally {
