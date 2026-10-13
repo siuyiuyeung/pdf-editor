@@ -1,6 +1,6 @@
 import { readFile } from 'node:fs/promises';
 import type { Download, Page } from '@playwright/test';
-import { makeEncryptedPdf, makePdf } from '../tests/helpers';
+import { makeEncryptedPdf, makePdf, makePng, tinyJpeg } from '../tests/helpers';
 
 type Upload = { name: string; mimeType: string; buffer: Buffer };
 
@@ -23,4 +23,12 @@ export async function readDownload(download: Download): Promise<Buffer> {
 /** Our error card; Next's route announcer also has role=alert, so match by text. */
 export function alertWith(page: Page, text: string) {
   return page.getByRole('alert').filter({ hasText: text });
+}
+
+export function pngUpload(name: string, width: number, height: number): Upload {
+  return { name, mimeType: 'image/png', buffer: Buffer.from(makePng(width, height)) };
+}
+
+export function jpgUpload(name: string): Upload {
+  return { name, mimeType: 'image/jpeg', buffer: Buffer.from(tinyJpeg()) };
 }

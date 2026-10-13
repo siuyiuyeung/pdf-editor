@@ -1,5 +1,6 @@
 export type ErrorCode =
   | 'INVALID_FILE'
+  | 'INVALID_IMAGE'
   | 'ENCRYPTED'
   | 'UNSUPPORTED_TYPE'
   | 'TOO_LARGE'
@@ -9,6 +10,7 @@ export type ErrorCode =
 
 export const ERROR_MESSAGES: Record<ErrorCode, string> = {
   INVALID_FILE: "This file isn't a valid PDF",
+  INVALID_IMAGE: "This file isn't a valid JPG or PNG image",
   ENCRYPTED: 'Protected PDF — remove the password first',
   UNSUPPORTED_TYPE: "This file type isn't supported by this tool",
   TOO_LARGE: 'File is too large (max 50 MB)',

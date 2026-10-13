@@ -1,5 +1,6 @@
 import type { ComponentType } from 'react';
 import type { EngineName } from '@/lib/pdf/engines';
+import type { PdfToolError } from '@/lib/pdf/errors';
 import type { InputFile } from '@/lib/pdf/types';
 import { MergeWorkspace } from './MergeWorkspace';
 import { RotateWorkspace } from './RotateWorkspace';
@@ -10,6 +11,8 @@ export interface WorkspaceProps {
   onInputsChange: (files: InputFile[]) => void;
   onAddFiles: (files: File[]) => void;
   run: (engine: EngineName, opts: unknown) => void;
+  /** Shows an error card above the workspace, e.g. for a bad image picked inside the workspace. */
+  onError: (error: PdfToolError) => void;
   busy: boolean;
 }
 

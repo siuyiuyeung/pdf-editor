@@ -19,3 +19,7 @@ test('spec-mandated copy', () => {
   expect(ERROR_MESSAGES.INVALID_FILE).toBe("This file isn't a valid PDF");
   expect(ERROR_MESSAGES.ENCRYPTED).toBe('Protected PDF — remove the password first');
 });
+
+test('INVALID_IMAGE copy', () => {
+  expect(ERROR_MESSAGES.INVALID_IMAGE).toBe("This file isn't a valid JPG or PNG image");
+});

@@ -29,8 +29,7 @@ export function ToolShell({ slug }: { slug: string }) {
   const accept = useCallback(
     async (read: InputFile[], append: boolean) => {
       if (read.length === 0) return;
-      const pdfs = read.filter((f) => extensionOf(f.name) === '.pdf');
-      if (pdfs.length > 0) await runEngine('validate', pdfs, {});
+      await runEngine('validate', read, {});
       setInputs((prev) => (append && tool.multiple ? [...prev, ...read] : read));
     },
     [tool.multiple],
@@ -108,6 +107,7 @@ export function ToolShell({ slug }: { slug: string }) {
           inputs={inputs}
           onInputsChange={setInputs}
           onAddFiles={addFiles}
+          onError={setError}
           run={run}
           busy={busy || validating}
         />
