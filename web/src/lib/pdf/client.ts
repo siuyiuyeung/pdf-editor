@@ -25,9 +25,14 @@ function getWorker(): Worker {
     if (e.data.ok) p.resolve(e.data.files);
     else p.reject(new PdfToolError(e.data.error.code, e.data.error.message));
   };
-  worker.onerror = (e) => {
-    // A crash (often out-of-memory) kills every in-flight job; start fresh next time.
-    for (const p of pending.values()) p.reject(new PdfToolError('OUT_OF_MEMORY', e.message || 'Processing crashed'));
+  worker.onerror = () => {
+    // Fires both when the worker crashes (often memory) and when its script fails to load
+    // (e.g. a stale tab after a redeploy); the two are indistinguishable here.
+    const err = new PdfToolError(
+      'UNKNOWN',
+      'Processing stopped unexpectedly. Reload the page and try again — very large files may not fit in browser memory.',
+    );
+    for (const p of pending.values()) p.reject(err);
     pending.clear();
     worker?.terminate();
     worker = null;

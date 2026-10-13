@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { readInputs } from '@/lib/files';
 import { clearHandoff, peekHandoff, setHandoff } from '@/lib/handoff';
 import { toToolError, type PdfToolError } from '@/lib/pdf/errors';
+import { usePreventWindowDrop } from '@/lib/usePreventWindowDrop';
 import { Dropzone } from './Dropzone';
 import { ErrorCard } from './ErrorCard';
 import { HowToUse } from './HowToUse';
@@ -12,6 +13,7 @@ import { ToolsGrid } from './ToolsGrid';
 export function HomeClient() {
   const [ready, setReady] = useState(0);
   const [error, setError] = useState<PdfToolError | null>(null);
+  usePreventWindowDrop();
 
   useEffect(() => {
     const pending = peekHandoff();

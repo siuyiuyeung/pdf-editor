@@ -17,7 +17,7 @@ const MODES: { value: Mode; label: string }[] = [
 
 export function SplitWorkspace({ inputs, onInputsChange, run, busy }: WorkspaceProps) {
   const file = inputs[0];
-  const { thumbs, error } = usePageThumbs(file);
+  const { pageCount, thumbs, error } = usePageThumbs(file);
   const [mode, setMode] = useState<Mode>('ranges');
   const [ranges, setRanges] = useState('');
   const [n, setN] = useState(1);
@@ -74,7 +74,7 @@ export function SplitWorkspace({ inputs, onInputsChange, run, busy }: WorkspaceP
       )}
       {mode === 'select' && <p className="mb-4 text-sm text-gray-500">Click pages to include them in one new PDF.</p>}
 
-      {thumbs ? (
+      {pageCount !== null ? (
         <PageGrid
           thumbs={thumbs}
           isSelected={mode === 'select' ? (i) => selected.has(i) : undefined}

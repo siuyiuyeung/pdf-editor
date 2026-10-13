@@ -11,12 +11,13 @@ const norm = (deg: number) => ((deg % 360) + 360) % 360;
 
 export function RotateWorkspace({ inputs, onInputsChange, run, busy }: WorkspaceProps) {
   const file = inputs[0];
-  const { thumbs, error } = usePageThumbs(file);
+  const { pageCount, thumbs, error } = usePageThumbs(file);
   const [rot, setRot] = useState<number[]>([]);
 
+  // Sized from the page count (known before thumbnails render) so early clicks aren't lost.
   useEffect(() => {
-    if (thumbs) setRot(thumbs.map(() => 0));
-  }, [thumbs]);
+    if (pageCount !== null) setRot(new Array(pageCount).fill(0));
+  }, [pageCount]);
 
   if (error) return <ErrorCard error={error} onDismiss={() => onInputsChange([])} />;
 
@@ -28,16 +29,16 @@ export function RotateWorkspace({ inputs, onInputsChange, run, busy }: Workspace
     <div className="rounded-md bg-white p-6 shadow-sm">
       <p className="mb-4 truncate font-semibold">{file.name}</p>
       <div className="mb-4 flex flex-wrap gap-3">
-        <button type="button" onClick={() => rotateAll(-90)} className="flex items-center gap-2 rounded border border-gray-300 px-4 py-2">
+        <button type="button" disabled={rot.length === 0} onClick={() => rotateAll(-90)} className="disabled:opacity-50 flex items-center gap-2 rounded border border-gray-300 px-4 py-2">
           <RotateCcw className="h-4 w-4" aria-hidden /> Rotate all left
         </button>
-        <button type="button" onClick={() => rotateAll(90)} className="flex items-center gap-2 rounded border border-gray-300 px-4 py-2">
+        <button type="button" disabled={rot.length === 0} onClick={() => rotateAll(90)} className="disabled:opacity-50 flex items-center gap-2 rounded border border-gray-300 px-4 py-2">
           <RotateCw className="h-4 w-4" aria-hidden /> Rotate all right
         </button>
         <span className="self-center text-sm text-gray-500">Click a page to rotate it 90°.</span>
       </div>
 
-      {thumbs ? (
+      {pageCount !== null ? (
         <PageGrid thumbs={thumbs} rotationOf={(i) => rot[i] ?? 0} onPageClick={rotateOne} />
       ) : (
         <p className="py-10 text-center text-gray-500">Loading pages…</p>
@@ -46,7 +47,7 @@ export function RotateWorkspace({ inputs, onInputsChange, run, busy }: Workspace
       <div className="mt-6 flex justify-end">
         <button
           type="button"
-          disabled={busy || unchanged}
+          disabled={busy || rot.length === 0 || unchanged}
           onClick={() => run('rotate', { rotations: rot })}
           className="rounded-sm bg-brand px-8 py-3 font-bold text-white hover:bg-brand-dark disabled:opacity-50"
         >

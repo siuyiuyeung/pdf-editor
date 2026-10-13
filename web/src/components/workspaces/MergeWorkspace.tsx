@@ -25,7 +25,7 @@ export function MergeWorkspace({ inputs, onInputsChange, onAddFiles, run, busy }
           <li
             key={`${i}-${f.name}`}
             data-testid="merge-item"
-            draggable
+            draggable={!busy}
             onDragStart={() => setDragIndex(i)}
             onDragOver={(e) => e.preventDefault()}
             onDrop={() => {
@@ -37,13 +37,13 @@ export function MergeWorkspace({ inputs, onInputsChange, onAddFiles, run, busy }
             <GripVertical className="h-4 w-4 text-gray-400" aria-hidden />
             <span className="w-6 text-sm text-gray-400">{i + 1}.</span>
             <span className="flex-1 truncate">{f.name}</span>
-            <button type="button" aria-label={`Move ${f.name} up`} disabled={i === 0} onClick={() => move(i, i - 1)} className="p-1 disabled:opacity-30">
+            <button type="button" aria-label={`Move ${f.name} up`} disabled={busy || i === 0} onClick={() => move(i, i - 1)} className="p-1 disabled:opacity-30">
               <ArrowUp className="h-4 w-4" />
             </button>
-            <button type="button" aria-label={`Move ${f.name} down`} disabled={i === inputs.length - 1} onClick={() => move(i, i + 1)} className="p-1 disabled:opacity-30">
+            <button type="button" aria-label={`Move ${f.name} down`} disabled={busy || i === inputs.length - 1} onClick={() => move(i, i + 1)} className="p-1 disabled:opacity-30">
               <ArrowDown className="h-4 w-4" />
             </button>
-            <button type="button" aria-label={`Remove ${f.name}`} onClick={() => remove(i)} className="p-1">
+            <button type="button" aria-label={`Remove ${f.name}`} disabled={busy} onClick={() => remove(i)} className="p-1 disabled:opacity-30">
               <X className="h-4 w-4" />
             </button>
           </li>
@@ -53,7 +53,7 @@ export function MergeWorkspace({ inputs, onInputsChange, onAddFiles, run, busy }
       {inputs.length < 2 && <p className="mt-4 text-sm text-gray-500">Add at least 2 PDFs to merge.</p>}
 
       <div className="mt-6 flex flex-wrap items-center justify-between gap-3">
-        <button type="button" onClick={() => addRef.current?.click()} className="font-semibold text-brand">
+        <button type="button" disabled={busy} onClick={() => addRef.current?.click()} className="font-semibold text-brand disabled:opacity-50">
           + Add more PDFs
         </button>
         <input

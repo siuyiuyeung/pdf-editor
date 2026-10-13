@@ -1,7 +1,8 @@
 'use client';
 
 interface PageGridProps {
-  thumbs: string[];
+  /** One entry per page; undefined renders a placeholder until that thumbnail is ready. */
+  thumbs: (string | undefined)[];
   isSelected?: (index: number) => boolean;
   rotationOf?: (index: number) => number;
   onPageClick?: (index: number) => void;
@@ -15,13 +16,20 @@ export function PageGrid({ thumbs, isSelected, rotationOf, onPageClick }: PageGr
         const content = (
           <>
             <span className="flex h-44 items-center justify-center overflow-hidden">
-              {/* eslint-disable-next-line @next/next/no-img-element -- data URL thumbnails */}
-              <img
-                src={src}
-                alt=""
-                className="max-h-40 max-w-full shadow transition-transform"
-                style={{ transform: `rotate(${rotationOf?.(i) ?? 0}deg)` }}
-              />
+              {src ? (
+                // eslint-disable-next-line @next/next/no-img-element -- data URL thumbnails
+                <img
+                  src={src}
+                  alt=""
+                  className="max-h-40 max-w-full shadow transition-transform"
+                  style={{ transform: `rotate(${rotationOf?.(i) ?? 0}deg)` }}
+                />
+              ) : (
+                <span
+                  className="block h-40 w-28 animate-pulse bg-gray-100 transition-transform"
+                  style={{ transform: `rotate(${rotationOf?.(i) ?? 0}deg)` }}
+                />
+              )}
             </span>
             <span className="mt-1 block text-center text-xs text-gray-500">{i + 1}</span>
           </>

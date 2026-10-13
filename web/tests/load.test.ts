@@ -21,6 +21,11 @@ describe('loadPdf', () => {
     expect(err).toBeInstanceOf(PdfToolError);
     expect(err.code).toBe('ENCRYPTED');
   });
+
+  test('ENCRYPTED detail also covers permission-only (owner password) PDFs', async () => {
+    const err = await loadPdf(input('locked.pdf', await makeEncryptedPdf())).catch((e) => e);
+    expect(err.message).toBe('locked.pdf is password-protected or has security restrictions');
+  });
 });
 
 describe('single', () => {

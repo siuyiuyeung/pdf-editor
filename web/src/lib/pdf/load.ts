@@ -11,7 +11,7 @@ export async function loadPdf(file: InputFile): Promise<PDFDocument> {
     return await PDFDocument.load(file.bytes, { updateMetadata: false });
   } catch (e) {
     if (isEncryptedError(e)) {
-      throw new PdfToolError('ENCRYPTED', `${file.name} is password-protected`);
+      throw new PdfToolError('ENCRYPTED', `${file.name} is password-protected or has security restrictions`);
     }
     throw new PdfToolError('INVALID_FILE', `${file.name} isn't a valid PDF`);
   }
