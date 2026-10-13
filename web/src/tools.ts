@@ -18,7 +18,7 @@ export const TOOLS: ToolDef[] = [
   { slug: 'pdf-to-word', title: 'Convert PDF to Word', subtitle: 'Turn a PDF into an editable DOCX', group: 'word', accept: PDF, multiple: false, engine: 'server', available: false },
   { slug: 'word-to-pdf', title: 'Convert Word to PDF', subtitle: 'Convert DOC and DOCX files to PDF', group: 'word', accept: ['.doc', '.docx'], multiple: false, engine: 'server', available: false },
   { slug: 'pdf-to-jpg', title: 'Convert PDF to JPG', subtitle: 'Save each page as a JPG image', group: 'image', accept: PDF, multiple: false, engine: 'client', available: false },
-  { slug: 'image-to-pdf', title: 'Convert JPG/PNG to PDF', subtitle: 'Combine images into one PDF', group: 'image', accept: ['.jpg', '.jpeg', '.png'], multiple: true, engine: 'client', available: false },
+  { slug: 'image-to-pdf', title: 'Convert JPG/PNG to PDF', subtitle: 'Combine images into one PDF', group: 'image', accept: ['.jpg', '.jpeg', '.png'], multiple: true, engine: 'client', available: true },
   { slug: 'pdf-to-png', title: 'Convert PDF to PNG', subtitle: 'Save each page as a PNG image', group: 'image', accept: PDF, multiple: false, engine: 'client', available: false },
   { slug: 'powerpoint-to-pdf', title: 'Convert PowerPoint to PDF', subtitle: 'Convert PPT and PPTX files to PDF', group: 'powerpoint', accept: ['.ppt', '.pptx'], multiple: false, engine: 'server', available: false },
   { slug: 'excel-to-pdf', title: 'Convert Excel to PDF', subtitle: 'Convert XLS and XLSX files to PDF', group: 'excel', accept: ['.xls', '.xlsx'], multiple: false, engine: 'server', available: false },

@@ -17,8 +17,10 @@ test('server engine exactly for compress and office tools', () => {
   expect(server).toEqual(['compress-pdf', 'excel-to-pdf', 'pdf-to-word', 'powerpoint-to-pdf', 'word-to-pdf']);
 });
 
-test('plan 1 enables merge, split, rotate only', () => {
-  expect(TOOLS.filter((t) => t.available).map((t) => t.slug).sort()).toEqual(['merge-pdf', 'rotate-pdf', 'split-pdf']);
+test('enabled tools', () => {
+  expect(TOOLS.filter((t) => t.available).map((t) => t.slug).sort()).toEqual([
+    'image-to-pdf', 'merge-pdf', 'rotate-pdf', 'split-pdf',
+  ]);
 });
 
 test('accept lists are lowercase dotted extensions', () => {

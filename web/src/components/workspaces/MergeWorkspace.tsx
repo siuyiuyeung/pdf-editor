@@ -2,6 +2,7 @@
 
 import { ArrowDown, ArrowUp, GripVertical, X } from 'lucide-react';
 import { useRef, useState } from 'react';
+import { moveItem } from '@/lib/reorder';
 import type { WorkspaceProps } from '.';
 
 export function MergeWorkspace({ inputs, onInputsChange, onAddFiles, run, busy }: WorkspaceProps) {
@@ -9,11 +10,8 @@ export function MergeWorkspace({ inputs, onInputsChange, onAddFiles, run, busy }
   const addRef = useRef<HTMLInputElement>(null);
 
   const move = (from: number, to: number) => {
-    if (to < 0 || to >= inputs.length || from === to) return;
-    const next = [...inputs];
-    const [item] = next.splice(from, 1);
-    next.splice(to, 0, item);
-    onInputsChange(next);
+    const next = moveItem(inputs, from, to);
+    if (next !== inputs) onInputsChange(next);
   };
 
   const remove = (index: number) => onInputsChange(inputs.filter((_, i) => i !== index));

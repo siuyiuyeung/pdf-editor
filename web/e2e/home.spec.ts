@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+import { TOOLS } from '../src/tools';
 
 test('home shows hero dropzone and all 14 tools', async ({ page }) => {
   await page.goto('/');
@@ -6,7 +7,7 @@ test('home shows hero dropzone and all 14 tools', async ({ page }) => {
   await expect(page.getByTestId('dropzone')).toBeVisible();
   await expect(page.getByRole('button', { name: 'SELECT PDF FILE' })).toBeVisible();
   await expect(page.getByTestId('tool-tile')).toHaveCount(14);
-  await expect(page.getByText('Coming soon')).toHaveCount(11);
+  await expect(page.getByText('Coming soon')).toHaveCount(TOOLS.filter((t) => !t.available).length);
 });
 
 test('available tiles link to their tool page', async ({ page }) => {
