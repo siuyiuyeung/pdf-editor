@@ -1,0 +1,8 @@
+node_modules
+.next
+e2e
+tests
+test-results
+playwright-report
+Dockerfile
+.dockerignore
