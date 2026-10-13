@@ -54,9 +54,22 @@ export function EditWorkspace({ inputs, onInputsChange, run, busy, onError }: Wo
   const [tool, setTool] = useState<DrawTool>('select');
   const [style, setStyle] = useState<DrawStyle>(DEFAULT_STYLE);
   const [images, setImages] = useState<Record<string, InsertedImage>>({});
+  /** Text box just placed; its textarea gets focus once the placing click has finished. */
+  const [focusTextId, setFocusTextId] = useState<string | null>(null);
+  const textArea = useRef<HTMLTextAreaElement>(null);
   const imageInput = useRef<HTMLInputElement>(null);
   const urls = useRef<string[]>([]);
   useEffect(() => () => urls.current.forEach((u) => URL.revokeObjectURL(u)), []);
+  useEffect(() => {
+    if (!focusTextId || state.selectedId !== focusTextId) return;
+    // Deferred: the mousedown that placed the box would otherwise move focus away again.
+    const t = setTimeout(() => {
+      textArea.current?.focus();
+      textArea.current?.select();
+      setFocusTextId(null);
+    }, 0);
+    return () => clearTimeout(t);
+  }, [focusTextId, state.selectedId]);
 
   if (error) return <ErrorCard error={error} onDismiss={() => onInputsChange([])} />;
 
@@ -189,19 +202,13 @@ export function EditWorkspace({ inputs, onInputsChange, run, busy, onError }: Wo
         <label className="mb-3 block text-sm font-semibold text-gray-600">
           Text content
           <textarea
+            ref={textArea}
             key={selected.id}
-            autoFocus
             rows={2}
             value={selected.text}
-            onFocus={(e) => {
-              e.currentTarget.select();
-              dispatch({ type: 'begin' });
-            }}
-            onChange={(e) => dispatch({ type: 'change', id: selected.id, object: { ...selected, text: e.target.value } })}
-            onBlur={() => {
-              dispatch({ type: 'end' });
-              if (!selected.text.trim()) dispatch({ type: 'remove', id: selected.id });
-            }}
+            onChange={(e) =>
+              dispatch({ type: 'change', id: selected.id, object: { ...selected, text: e.target.value }, coalesce: true })
+            }
             className="mt-1 block w-full rounded border border-gray-300 px-3 py-2 font-normal text-gray-900"
           />
         </label>
@@ -218,7 +225,10 @@ export function EditWorkspace({ inputs, onInputsChange, run, busy, onError }: Wo
           imageUrls={imageUrls}
           tool={tool}
           style={style}
-          onPlaced={() => setTool('select')}
+          onPlaced={(id) => {
+            setTool('select');
+            setFocusTextId(id);
+          }}
           disabled={busy}
         />
       ) : (
@@ -226,7 +236,9 @@ export function EditWorkspace({ inputs, onInputsChange, run, busy, onError }: Wo
       )}
 
       <p className="mt-3 text-xs text-gray-500">
-        Existing text in the PDF can&apos;t be changed — cover it with Whiteout and write over it with Text.
+        Existing text in the PDF can&apos;t be changed — cover it with Whiteout and write over it with Text. Whiteout only
+        hides content visually: the text underneath can still be selected and copied, so don&apos;t use it to redact
+        sensitive information.
       </p>
       <div className="mt-6 flex justify-end">
         <button

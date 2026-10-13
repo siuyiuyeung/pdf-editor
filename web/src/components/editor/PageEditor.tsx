@@ -151,8 +151,8 @@ interface PageEditorProps {
   imageUrls: Record<string, string>;
   tool: DrawTool;
   style: DrawStyle;
-  /** Called after a one-shot tool (text) has placed its object. */
-  onPlaced?: () => void;
+  /** Called with the new object's id after a one-shot tool (text) has placed it. */
+  onPlaced?: (id: string) => void;
   disabled?: boolean;
 }
 
@@ -163,6 +163,13 @@ export function PageEditor({
   const svgRef = useRef<SVGSVGElement>(null);
   const gesture = useRef<Gesture | null>(null);
   const [draft, setDraft] = useState<EditObject | null>(null);
+  // Pointer events can arrive faster than React re-renders, so the shape being drawn lives in a ref
+  // (always current) and is mirrored to state only for display.
+  const draftRef = useRef<EditObject | null>(null);
+  const updateDraft = (d: EditObject | null) => {
+    draftRef.current = d;
+    setDraft(d);
+  };
   const objects = state.objects.filter((o) => o.page === page);
   const selected = objects.find((o) => o.id === state.selectedId) ?? null;
 
@@ -208,17 +215,22 @@ export function PageEditor({
       }
       dispatch({ type: 'begin' });
     } else if (tool === 'text') {
+      const id = newId();
       dispatch({
         type: 'add',
-        object: { id: newId(), page, type: 'text', x: p.x, y: p.y, text: 'Text', font: style.font, size: style.size, color: style.color },
+        object: { id, page, type: 'text', x: p.x, y: p.y, text: 'Text', font: style.font, size: style.size, color: style.color },
       });
-      onPlaced?.();
+      onPlaced?.(id);
       return;
     } else {
       gesture.current = { kind: 'draw', start: p };
-      setDraft(newShape(tool, page, p, style));
+      updateDraft(newShape(tool, page, p, style));
     }
-    e.currentTarget.setPointerCapture(e.pointerId);
+    try {
+      e.currentTarget.setPointerCapture(e.pointerId);
+    } catch {
+      // The pointer is already gone (or was synthetic); the gesture still completes on pointerup.
+    }
   };
 
   const onPointerMove = (e: ReactPointerEvent<SVGSVGElement>) => {
@@ -234,18 +246,20 @@ export function PageEditor({
       // Images keep their aspect ratio; other shapes resize freely.
       const h = g.origin.type === 'image' && g.box.w > 0 ? (w * g.box.h) / g.box.w : Math.max(MIN_SIZE, g.box.h + dy);
       dispatch({ type: 'change', id: g.id, object: resize(g.origin, g.box, { x: g.box.x, y: g.box.y, w, h }) });
-    } else {
-      setDraft((d) => (d ? extendShape(d, g.start, p) : d));
+    } else if (draftRef.current) {
+      updateDraft(extendShape(draftRef.current, g.start, p));
     }
   };
 
-  const onPointerUp = () => {
+  const onPointerUp = (e: ReactPointerEvent<SVGSVGElement>) => {
     const g = gesture.current;
     gesture.current = null;
     if (!g) return;
     if (g.kind === 'draw') {
-      if (draft && bigEnough(draft)) dispatch({ type: 'add', object: draft });
-      setDraft(null);
+      // Include the pointerup position: it may differ from the last move that was seen.
+      const d = draftRef.current ? extendShape(draftRef.current, g.start, toPoint(e)) : null;
+      if (d && bigEnough(d)) dispatch({ type: 'add', object: d });
+      updateDraft(null);
     } else {
       dispatch({ type: 'end' });
     }

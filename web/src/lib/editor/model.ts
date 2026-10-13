@@ -162,14 +162,22 @@ export interface EditorState {
   future: EditObject[][];
   /** Objects as they were when the current gesture began; becomes one history step on 'end'. */
   gestureStart: EditObject[] | null;
+  /** Object whose coalesced changes (text typing) are folding into the latest history step. */
+  coalesceId: string | null;
 }
 
-export const initialEditorState: EditorState = { objects: [], selectedId: null, past: [], future: [], gestureStart: null };
+export const initialEditorState: EditorState = {
+  objects: [], selectedId: null, past: [], future: [], gestureStart: null, coalesceId: null,
+};
 
 export type EditorAction =
   | { type: 'add'; object: EditObject }
   | { type: 'begin' }
-  | { type: 'change'; id: string; object: EditObject }
+  /**
+   * Replaces an object. Inside a gesture: no history step. Otherwise one step — unless `coalesce`
+   * is set and the previous action was a coalesced change of the same object (one step per typing session).
+   */
+  | { type: 'change'; id: string; object: EditObject; coalesce?: boolean }
   | { type: 'end' }
   | { type: 'remove'; id: string }
   | { type: 'select'; id: string | null }
@@ -190,15 +198,33 @@ function keepSelection(objects: EditObject[], id: string | null): string | null 
   return id !== null && objects.some((o) => o.id === id) ? id : null;
 }
 
+/** Drops the selected text box when it is empty; called when the selection moves away from it. */
+function pruneEmptyText(state: EditorState, keepId: string | null): EditorState {
+  const sel = state.objects.find((o) => o.id === state.selectedId);
+  if (!sel || sel.id === keepId || sel.type !== 'text' || sel.text.trim()) return state;
+  return { ...state, objects: state.objects.filter((o) => o.id !== sel.id), selectedId: null };
+}
+
 export function editorReducer(state: EditorState, action: EditorAction): EditorState {
+  const next = reduce(state, action);
+  const coalescing = action.type === 'change' && action.coalesce === true && !state.gestureStart;
+  if (coalescing) return { ...next, coalesceId: action.id };
+  return next.coalesceId === null ? next : { ...next, coalesceId: null };
+}
+
+function reduce(state: EditorState, action: EditorAction): EditorState {
   switch (action.type) {
-    case 'add':
-      return { ...commit(state, [...state.objects, action.object]), selectedId: action.object.id };
+    case 'add': {
+      const base = pruneEmptyText(state, null);
+      return { ...commit(base, [...base.objects, action.object]), selectedId: action.object.id };
+    }
     case 'begin':
       return state.gestureStart ? state : { ...state, gestureStart: state.objects };
     case 'change': {
       const objects = state.objects.map((o) => (o.id === action.id ? action.object : o));
-      return state.gestureStart ? { ...state, objects } : commit(state, objects);
+      if (state.gestureStart) return { ...state, objects };
+      if (action.coalesce && state.coalesceId === action.id) return { ...state, objects };
+      return commit(state, objects);
     }
     case 'end': {
       if (!state.gestureStart) return state;
@@ -211,7 +237,7 @@ export function editorReducer(state: EditorState, action: EditorAction): EditorS
       return { ...next, selectedId: state.selectedId === action.id ? null : state.selectedId };
     }
     case 'select':
-      return { ...state, selectedId: action.id };
+      return { ...pruneEmptyText(state, action.id), selectedId: action.id };
     case 'undo': {
       if (state.gestureStart || state.past.length === 0) return state;
       const objects = state.past[state.past.length - 1];

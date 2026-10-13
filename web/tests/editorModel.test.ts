@@ -119,3 +119,38 @@ test('history keeps the last 100 steps', () => {
   for (let i = 0; i < 105; i++) s = editorReducer(s, { type: 'add', object: { ...rect, id: `r${i}` } });
   expect(s.past).toHaveLength(100);
 });
+
+test('coalesced text changes are one undo step until another action happens', () => {
+  const s = run([
+    { type: 'add', object: text },
+    { type: 'change', id: 't', object: { ...text, text: 'H' }, coalesce: true },
+    { type: 'change', id: 't', object: { ...text, text: 'He' }, coalesce: true },
+    { type: 'change', id: 't', object: { ...text, text: 'Hey' }, coalesce: true },
+  ]);
+  expect(s.past).toHaveLength(2);
+  expect(editorReducer(s, { type: 'undo' }).objects[0]).toMatchObject({ text: 'a' + String.fromCharCode(10) + 'bb' });
+  const after = run([{ type: 'select', id: null }, { type: 'change', id: 't', object: { ...text, text: 'Hey!' }, coalesce: true }], s);
+  expect(after.past).toHaveLength(3);
+});
+
+test('a drag after a typing session is still one undo step', () => {
+  const s = run([
+    { type: 'add', object: text },
+    { type: 'change', id: 't', object: { ...text, text: 'Hi' }, coalesce: true },
+    { type: 'begin' },
+    { type: 'change', id: 't', object: translate({ ...text, text: 'Hi' }, 5, 0) },
+    { type: 'change', id: 't', object: translate({ ...text, text: 'Hi' }, 9, 0) },
+    { type: 'end' },
+  ]);
+  expect(s.past).toHaveLength(3);
+  expect(editorReducer(s, { type: 'undo' }).objects[0]).toMatchObject({ x: 5, text: 'Hi' });
+});
+
+test('moving the selection away from an empty text box removes it', () => {
+  const empty = run([{ type: 'add', object: rect }, { type: 'add', object: { ...text, text: '  ' } }]);
+  expect(editorReducer(empty, { type: 'select', id: null }).objects).toEqual([rect]);
+  expect(editorReducer(empty, { type: 'select', id: 'r' }).objects).toEqual([rect]);
+  expect(editorReducer(empty, { type: 'add', object: line }).objects).toEqual([rect, line]);
+  const kept = run([{ type: 'add', object: text }, { type: 'select', id: null }]);
+  expect(kept.objects).toEqual([text]);
+});
