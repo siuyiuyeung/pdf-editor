@@ -3,4 +3,56 @@ services:
     build: ./web
     ports:
       - "3000:3000"
+    depends_on:
+      - api
+    networks: [frontend]
     restart: unless-stopped
+
+  api:
+    build: { context: ./server, target: api }
+    environment:
+      REDIS_URL: redis://redis:6379/0
+      PDFTOOLS_RATE_LIMIT: ${PDFTOOLS_RATE_LIMIT:-20}
+    volumes:
+      - jobs:/data/jobs
+    depends_on:
+      - redis
+    networks: [frontend, backend]
+    restart: unless-stopped
+
+  worker:
+    build: { context: ./server, target: worker }
+    environment:
+      REDIS_URL: redis://redis:6379/0
+    volumes:
+      - jobs:/data/jobs
+    depends_on:
+      - redis
+    networks: [backend] # internal network: no outbound access
+    init: true # reaps converter processes killed on timeout
+    deploy:
+      resources:
+        limits: { cpus: "2", memory: 2g }
+    restart: unless-stopped
+
+  redis:
+    image: redis:7.4-alpine
+    command: ["redis-server", "--save", "", "--appendonly", "no"]
+    networks: [backend]
+    restart: unless-stopped
+
+  sweeper:
+    build: { context: ./server, target: api }
+    command: ["python", "-m", "pdftools.sweeper"]
+    volumes:
+      - jobs:/data/jobs
+    network_mode: none
+    restart: unless-stopped
+
+networks:
+  frontend: {}
+  backend:
+    internal: true
+
+volumes:
+  jobs: {}
