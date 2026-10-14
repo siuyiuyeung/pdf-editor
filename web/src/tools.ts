@@ -28,6 +28,7 @@ export const TOOLS: ToolDef[] = [
   { slug: 'edit-pdf', title: 'Edit PDF', subtitle: 'Add text, shapes, images and highlights', group: 'edit', accept: PDF, multiple: false, engine: 'client', available: true },
   { slug: 'watermark-pdf', title: 'Watermark PDF', subtitle: 'Stamp text or an image on your pages', group: 'edit', accept: PDF, multiple: false, engine: 'client', available: true },
   { slug: 'rotate-pdf', title: 'Rotate PDF', subtitle: 'Rotate one page or all of them', group: 'edit', accept: PDF, multiple: false, engine: 'client', available: true },
+  { slug: 'crop-pdf', title: 'Crop PDF', subtitle: 'Trim margins or keep just part of a page', group: 'edit', accept: PDF, multiple: false, engine: 'client', available: true },
   { slug: 'sign-pdf', title: 'Sign PDF', subtitle: 'Draw, type or upload your signature', group: 'sign', accept: PDF, multiple: false, engine: 'client', available: true },
 ];
 

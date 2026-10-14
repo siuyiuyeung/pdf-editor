@@ -1,5 +1,5 @@
 import {
-  FileText, Image as ImageIcon, Merge, Minimize2, PenLine, Pencil, Presentation, RotateCw, Scissors, Sheet, Stamp,
+  Crop, FileText, Image as ImageIcon, Merge, Minimize2, PenLine, Pencil, Presentation, RotateCw, Scissors, Sheet, Stamp,
   type LucideIcon,
 } from 'lucide-react';
 import type { ToolDef, ToolGroup } from '@/tools';
@@ -29,6 +29,7 @@ const ICONS: Record<string, LucideIcon> = {
   'edit-pdf': Pencil,
   'watermark-pdf': Stamp,
   'rotate-pdf': RotateCw,
+  'crop-pdf': Crop,
   'sign-pdf': PenLine,
 };
 

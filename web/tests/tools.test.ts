@@ -1,12 +1,12 @@
 import { expect, test } from 'vitest';
 import { TOOLS, acceptLabel, getTool } from '@/tools';
 
-test('registry has the 14 spec tools with unique slugs', () => {
-  expect(TOOLS).toHaveLength(14);
-  expect(new Set(TOOLS.map((t) => t.slug)).size).toBe(14);
+test('registry has the 15 spec tools with unique slugs', () => {
+  expect(TOOLS).toHaveLength(15);
+  expect(new Set(TOOLS.map((t) => t.slug)).size).toBe(15);
   expect(TOOLS.map((t) => t.slug).sort()).toEqual(
     [
-      'compress-pdf', 'edit-pdf', 'excel-to-pdf', 'image-to-pdf', 'merge-pdf', 'pdf-to-jpg', 'pdf-to-png',
+      'compress-pdf', 'crop-pdf', 'edit-pdf', 'excel-to-pdf', 'image-to-pdf', 'merge-pdf', 'pdf-to-jpg', 'pdf-to-png',
       'pdf-to-word', 'powerpoint-to-pdf', 'rotate-pdf', 'sign-pdf', 'split-pdf', 'watermark-pdf', 'word-to-pdf',
     ],
   );
@@ -19,7 +19,7 @@ test('server engine exactly for compress and office tools', () => {
 
 test('enabled tools', () => {
   expect(TOOLS.filter((t) => t.available).map((t) => t.slug).sort()).toEqual([
-    'edit-pdf', 'image-to-pdf', 'merge-pdf', 'pdf-to-jpg', 'pdf-to-png', 'rotate-pdf', 'sign-pdf', 'split-pdf', 'watermark-pdf',
+    'crop-pdf', 'edit-pdf', 'image-to-pdf', 'merge-pdf', 'pdf-to-jpg', 'pdf-to-png', 'rotate-pdf', 'sign-pdf', 'split-pdf', 'watermark-pdf',
   ]);
 });
 

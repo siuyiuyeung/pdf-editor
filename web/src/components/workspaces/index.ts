@@ -2,6 +2,7 @@ import type { ComponentType } from 'react';
 import type { ToolEngine } from '@/lib/pdf/run';
 import type { PdfToolError } from '@/lib/pdf/errors';
 import type { InputFile } from '@/lib/pdf/types';
+import { CropWorkspace } from './CropWorkspace';
 import { EditWorkspace } from './EditWorkspace';
 import { ImageToPdfWorkspace } from './ImageToPdfWorkspace';
 import { MergeWorkspace } from './MergeWorkspace';
@@ -25,6 +26,7 @@ export const WORKSPACES: Record<string, ComponentType<WorkspaceProps>> = {
   'merge-pdf': MergeWorkspace,
   'split-pdf': SplitWorkspace,
   'rotate-pdf': RotateWorkspace,
+  'crop-pdf': CropWorkspace,
   'image-to-pdf': ImageToPdfWorkspace,
   'pdf-to-jpg': PdfToJpgWorkspace,
   'pdf-to-png': PdfToPngWorkspace,
