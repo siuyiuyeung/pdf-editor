@@ -81,7 +81,11 @@ def create_app(store: JobStore, queue: JobQueue, limiter: RateLimiter) -> FastAP
 
     @app.post("/jobs", status_code=202)
     async def create_job(request: Request) -> dict:
-        if int(request.headers.get("content-length") or 0) > config.MAX_BYTES + CHUNK:
+        try:
+            declared = int(request.headers.get("content-length") or 0)
+        except ValueError:
+            raise ApiError(400, "BAD_OPTIONS", "Invalid Content-Length header") from None
+        if declared > config.MAX_BYTES + CHUNK:
             raise ApiError(413, "TOO_LARGE", "File is larger than 50 MB")
         if not limiter.allow(client_key(request)):
             raise ApiError(429, "RATE_LIMITED", "Too many jobs — try again in a few minutes")
@@ -114,7 +118,8 @@ def create_app(store: JobStore, queue: JobQueue, limiter: RateLimiter) -> FastAP
                     fh.write(chunk)
             if size == 0 or not looks_like(ext, head):
                 raise ApiError(400, "INVALID_FILE", f"This isn't a valid {ext[1:].upper()} file")
-        except ApiError:
+        except BaseException:
+            # Any failure (bad bytes, client disconnect, full disk) must not leave the upload behind.
             store.delete(job_id)
             raise
         finally:
@@ -140,7 +145,7 @@ def create_app(store: JobStore, queue: JobQueue, limiter: RateLimiter) -> FastAP
                 output["note"] = NOTES[result["note"]]
             return {"status": "done", "output": output}
         if status == "failed":
-            return {"status": "failed", "error": GENERIC_FAILURE}
+            return {"status": "failed", "error": (result or {}).get("error") or GENERIC_FAILURE}
         return {"status": status}
 
     @app.get("/jobs/{job_id}/file")

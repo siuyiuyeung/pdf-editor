@@ -1,8 +1,24 @@
 """Queue adapter. The API depends only on the JobQueue protocol, so tests can use an in-memory fake."""
 
+from datetime import datetime, timezone
 from typing import Protocol
 
 from . import config
+
+
+#: A running job's worker sends a heartbeat every 30 s; after this long without one the worker is gone.
+HEARTBEAT_STALE_S = 120
+WORKER_LOST = {"code": "CONVERSION_FAILED", "message": "The converter restarted while working on this file"}
+RQ_TIMEOUT = {"code": "TIMEOUT", "message": "Conversion took too long"}
+
+
+def _worker_lost(job) -> bool:
+    beat = job.last_heartbeat
+    if beat is None:
+        return False
+    if beat.tzinfo is None:
+        beat = beat.replace(tzinfo=timezone.utc)
+    return (datetime.now(timezone.utc) - beat).total_seconds() > HEARTBEAT_STALE_S
 
 
 class JobQueue(Protocol):
@@ -52,10 +68,15 @@ class RQJobQueue:
             return None
         status = job.get_status()
         if status == JobStatus.STARTED:
+            if _worker_lost(job):
+                return ("failed", {"error": WORKER_LOST})
             return ("running", None)
         if status == JobStatus.FINISHED:
             return ("done", job.return_value())
         if status in (JobStatus.FAILED, JobStatus.STOPPED, JobStatus.CANCELED):
+            result = job.latest_result()
+            if result is not None and "JobTimeoutException" in (result.exc_string or ""):
+                return ("failed", {"error": RQ_TIMEOUT})
             return ("failed", None)
         return ("queued", None)
 

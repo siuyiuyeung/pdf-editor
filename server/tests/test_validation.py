@@ -43,3 +43,14 @@ def test_looks_like_checks_container_magic():
 )
 def test_display_base(name, base):
     assert display_base(name) == base
+
+
+def test_legacy_word_and_excel_exports_in_rtf_html_or_xml_are_accepted():
+    assert looks_like(".doc", rb"{\rtf1\ansi hello")
+    assert looks_like(".doc", b"\xef\xbb\xbf  <html><body>hi")
+    assert looks_like(".xls", b"\r\n<!DOCTYPE html><table>")
+    assert looks_like(".xls", b'<?xml version="1.0"?><Workbook>')
+    assert looks_like(".xls", b"<table><tr><td>1</td></tr></table>")
+    assert not looks_like(".ppt", rb"{\rtf1")
+    assert not looks_like(".docx", rb"{\rtf1")
+    assert not looks_like(".doc", b"just some text")

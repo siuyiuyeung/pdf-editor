@@ -21,11 +21,19 @@ def looks_like(ext: str, head: bytes) -> bool:
     """True when the first bytes match the container format the extension claims."""
     if ext == ".pdf":
         return b"%PDF-" in head[:1024]
-    if ext in (".doc", ".xls", ".ppt"):
+    if ext in (".doc", ".xls"):
+        # Many banking/ERP exports are RTF, HTML or XML saved under a legacy extension; LibreOffice converts them.
+        return head.startswith(OLE_MAGIC) or _is_text_export(head)
+    if ext == ".ppt":
         return head.startswith(OLE_MAGIC)
     if ext in (".docx", ".xlsx", ".pptx"):
         return head.startswith(ZIP_MAGIC)
     return False
+
+
+def _is_text_export(head: bytes) -> bool:
+    text = head.removeprefix(b"\xef\xbb\xbf").lstrip().lower()
+    return text.startswith((rb"{\rtf", b"<html", b"<!doctype html", b"<?xml", b"<table"))
 
 
 def display_base(name: str) -> str:

@@ -197,3 +197,30 @@ def test_a_job_is_gone_after_the_sweeper_runs(env):
     assert sweep(store.root, time.time() + 2 * config.JOB_MAX_AGE_S, config.JOB_MAX_AGE_S) == 1
     assert client.get(f"/jobs/{job_id}").status_code == 404
     assert client.get(f"/jobs/{job_id}/file").status_code == 404
+
+
+def test_a_malformed_content_length_is_a_bad_request(env):
+    _, _, client = env
+    r = client.post("/jobs", headers={"content-length": "abc"}, content=b"x")
+    assert r.status_code == 400 and r.json()["error"]["code"] == "BAD_OPTIONS"
+
+
+def test_an_unexpected_error_while_storing_the_upload_leaves_nothing_behind(env, monkeypatch):
+    store, queue, _ = env
+    limiter = RateLimiter(fakeredis.FakeRedis(), limit=config.RATE_LIMIT, window_s=config.RATE_WINDOW_S)
+    client = TestClient(create_app(store, queue, limiter), raise_server_exceptions=False)
+
+    def disk_full(ext, head):
+        raise OSError(28, "No space left on device")
+
+    monkeypatch.setattr("pdftools.api.looks_like", disk_full)
+    assert post(client).status_code == 500
+    assert list(store.root.iterdir()) == []
+    assert queue.jobs == {}
+
+
+def test_a_failed_job_reports_the_queue_error_when_there_is_one(env):
+    _, queue, client = env
+    job_id = post(client).json()["id"]
+    queue.jobs[job_id] = ("failed", {"error": {"code": "TIMEOUT", "message": "Too slow"}})
+    assert client.get(f"/jobs/{job_id}").json() == {"status": "failed", "error": {"code": "TIMEOUT", "message": "Too slow"}}

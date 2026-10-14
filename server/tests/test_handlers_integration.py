@@ -165,3 +165,29 @@ def test_timeout_kills_the_whole_process_group(tmp_path):
     time.sleep(0.5)  # the container's init (docker run --init) reaps the killed orphan
     with pytest.raises(ProcessLookupError):
         os.kill(child, 0)
+
+
+def test_a_hanging_pdf_check_times_out(tmp_path, monkeypatch):
+    from pdftools.handlers import pdfcheck
+
+    monkeypatch.setattr(pdfcheck, "CHECK_TIMEOUT_S", 1)
+    monkeypatch.setattr(pdfcheck, "check_command", lambda src: ["sh", "-c", "sleep 30"])
+    src = tmp_path / "input.pdf"
+    text_pdf(src)
+    started = time.monotonic()
+    with pytest.raises(JobError) as err:
+        pdfcheck.ensure_openable(src)
+    assert err.value.code == "TIMEOUT"
+    assert time.monotonic() - started < 10
+
+
+def test_an_rtf_doc_converts(tmp_path):
+    src = tmp_path / "input.doc"
+    src.write_bytes(rb"{\rtf1\ansi Hello from RTF\par}")
+    assert "Hello from RTF" in pages_and_text(convert(tmp_path, "word-to-pdf", src))[1]
+
+
+def test_an_html_xls_converts(tmp_path):
+    src = tmp_path / "input.xls"
+    src.write_bytes(b"<html><body><table><tr><td>Bank export</td></tr></table></body></html>")
+    assert "Bank export" in pages_and_text(convert(tmp_path, "excel-to-pdf", src))[1]
