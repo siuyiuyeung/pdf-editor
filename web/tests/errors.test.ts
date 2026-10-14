@@ -23,3 +23,13 @@ test('spec-mandated copy', () => {
 test('INVALID_IMAGE copy', () => {
   expect(ERROR_MESSAGES.INVALID_IMAGE).toBe("This file isn't a valid JPG or PNG image");
 });
+
+test('server-tool copy', () => {
+  expect(ERROR_MESSAGES.INVALID_DOCUMENT).toBe("This file isn't a valid Word, Excel or PowerPoint file");
+  expect(ERROR_MESSAGES.RATE_LIMITED).toBe('Too many files in a short time — please wait a few minutes');
+  expect(ERROR_MESSAGES.BUSY).toBe('Our converter is busy right now — please try again in a minute');
+  expect(ERROR_MESSAGES.TIMEOUT).toBe('This file took too long to convert');
+  expect(ERROR_MESSAGES.CONVERSION_FAILED).toBe("We couldn't convert this file");
+  expect(ERROR_MESSAGES.EXPIRED).toBe('This job has expired — please upload the file again');
+  expect(ERROR_MESSAGES.NETWORK).toBe("Couldn't reach the server — check your connection and try again");
+});

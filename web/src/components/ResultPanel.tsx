@@ -34,6 +34,11 @@ export function ResultPanel({ outputs, onReset }: { outputs: OutputFile[]; onRes
       <h2 className="font-display text-2xl text-gray-800">
         {single ? 'Your file is ready' : `Your ${outputs.length} files are ready`}
       </h2>
+      {outputs.some((f) => f.note) && (
+        <p data-testid="result-note" className="mt-2 text-sm text-gray-600">
+          {outputs.find((f) => f.note)?.note}
+        </p>
+      )}
       <ul className="my-4 text-sm text-gray-600">
         {outputs.map((f, i) => (
           <li key={i}>

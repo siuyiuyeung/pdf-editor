@@ -25,3 +25,28 @@ test('validate rejects non-image bytes with an image extension as INVALID_IMAGE'
     code: 'INVALID_IMAGE',
   });
 });
+
+const OLE = [0xd0, 0xcf, 0x11, 0xe0, 0xa1, 0xb1, 0x1a, 0xe1];
+const ZIP = [0x50, 0x4b, 0x03, 0x04];
+const bytes = (head: number[]) => Uint8Array.from([...head, 0, 0, 0, 0]);
+
+test('validate accepts Office files with the right container magic', async () => {
+  const files = [
+    input('a.docx', bytes(ZIP)), input('b.xlsx', bytes(ZIP)), input('c.pptx', bytes(ZIP)),
+    input('d.doc', bytes(OLE)), input('e.xls', bytes(OLE)), input('f.ppt', bytes(OLE)),
+  ];
+  expect(await engines.validate(files, {})).toEqual([]);
+});
+
+test('validate rejects Office files with the wrong bytes as INVALID_DOCUMENT', async () => {
+  await expect(engines.validate([input('x.docx', bytes(OLE))], {})).rejects.toMatchObject({ code: 'INVALID_DOCUMENT' });
+  await expect(engines.validate([input('y.doc', new TextEncoder().encode('hello'))], {})).rejects.toMatchObject({
+    code: 'INVALID_DOCUMENT',
+  });
+});
+
+test('validate rejects unknown extensions instead of treating them as images', async () => {
+  await expect(engines.validate([input('z.txt', new TextEncoder().encode('hi'))], {})).rejects.toMatchObject({
+    code: 'UNSUPPORTED_TYPE',
+  });
+});

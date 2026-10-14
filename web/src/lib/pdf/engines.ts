@@ -11,11 +11,31 @@ import { split } from './split';
 import { watermark } from './watermark';
 import type { Engine } from './types';
 
-/** Checks every input at selection time: PDFs are parsed (ENCRYPTED / INVALID_FILE), images are sniffed (INVALID_IMAGE). */
+const IMAGE_EXTS = ['.jpg', '.jpeg', '.png'];
+const OLE_EXTS = ['.doc', '.xls', '.ppt'];
+const ZIP_EXTS = ['.docx', '.xlsx', '.pptx'];
+const OLE_MAGIC = [0xd0, 0xcf, 0x11, 0xe0, 0xa1, 0xb1, 0x1a, 0xe1];
+const ZIP_MAGIC = [0x50, 0x4b, 0x03, 0x04];
+const startsWith = (bytes: Uint8Array, magic: number[]) => magic.every((b, i) => bytes[i] === b);
+
+/**
+ * Checks every input at selection time: PDFs are parsed (ENCRYPTED / INVALID_FILE), images sniffed
+ * (INVALID_IMAGE), Office files checked for their container format (INVALID_DOCUMENT). The server
+ * re-validates Office uploads.
+ */
 const validate: Engine<Record<string, never>> = async (inputs) => {
   for (const f of inputs) {
-    if (extensionOf(f.name) === '.pdf') await loadPdf(f);
-    else if (!readImageInfo(f.bytes)) throw new PdfToolError('INVALID_IMAGE', `${f.name} isn't a valid JPG or PNG image`);
+    const ext = extensionOf(f.name);
+    if (ext === '.pdf') await loadPdf(f);
+    else if (IMAGE_EXTS.includes(ext)) {
+      if (!readImageInfo(f.bytes)) throw new PdfToolError('INVALID_IMAGE', `${f.name} isn't a valid JPG or PNG image`);
+    } else if (OLE_EXTS.includes(ext) || ZIP_EXTS.includes(ext)) {
+      if (!startsWith(f.bytes, OLE_EXTS.includes(ext) ? OLE_MAGIC : ZIP_MAGIC)) {
+        throw new PdfToolError('INVALID_DOCUMENT', `${f.name} isn't a valid Office document`);
+      }
+    } else {
+      throw new PdfToolError('UNSUPPORTED_TYPE', `${f.name}: this file type isn't supported`);
+    }
   }
   return [];
 };
