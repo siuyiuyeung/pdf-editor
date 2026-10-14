@@ -9,7 +9,7 @@ Reference: `reference.png` (OpenPDF layout)
 A public PDF-tools website modeled on the OpenPDF reference. Anonymous users upload a file, apply one tool, and download the result. No accounts, no payments.
 
 **Success criteria**
-- All 14 tools work end-to-end (select file → configure → download) in current desktop and mobile Chrome, Firefox, Safari, and Edge.
+- All 15 tools work end-to-end (select file → configure → download) in current desktop and mobile Chrome, Firefox, Safari, and Edge.
 - A typical file (≤10 MB, ≤50 pages) finishes in under ~10 seconds.
 - Files for client-side tools never leave the user's device.
 - Server-side uploads are deleted no later than 1 hour after upload.
@@ -28,7 +28,7 @@ A public PDF-tools website modeled on the OpenPDF reference. Anonymous users upl
 - CI pipeline
 - Horizontal scaling
 
-## 2. Tools (14)
+## 2. Tools (15)
 
 | Group | Tool | Slug | Engine |
 |---|---|---|---|
@@ -39,6 +39,7 @@ A public PDF-tools website modeled on the OpenPDF reference. Anonymous users upl
 | Edit | Edit PDF | `edit-pdf` | client |
 | Edit | Watermark PDF | `watermark-pdf` | client |
 | Edit | Sign PDF | `sign-pdf` | client |
+| Edit | Crop PDF | `crop-pdf` | client |
 | Image | PDF to JPG | `pdf-to-jpg` | client |
 | Image | PDF to PNG | `pdf-to-png` | client |
 | Image | JPG/PNG to PDF | `image-to-pdf` | client |
@@ -49,7 +50,7 @@ A public PDF-tools website modeled on the OpenPDF reference. Anonymous users upl
 
 ## 3. Architecture
 
-Hybrid approach: the browser handles 10 tools locally, and the server handles only the 4 Office conversions and Compress.
+Hybrid approach: the browser handles 10 tools locally (11 with Crop), and the server handles only the 4 Office conversions and Compress.
 
 ```
 Browser (Next.js 15, TypeScript, Tailwind)
@@ -146,6 +147,7 @@ The job ID (UUID4) is the only access credential.
   - upload a PNG
 
   Signatures live only in session memory. A signature can be placed, moved, and resized on any page, multiple times. It is embedded as an image on export.
+- **Crop**: the user drags a crop box over a page preview (corner handles resize it, dragging the box moves it) and applies it to all pages or only the current page. The engine sets each page's CropBox, so the area outside the box is hidden in every viewer but remains in the file; the UI states that this is not redaction. Output: `<name>-cropped.pdf`.
 - **PDF→JPG / PDF→PNG**: DPI 72, 150, or 300, for all pages or selected pages. A single page downloads as an image; multiple pages download as a ZIP.
 - **JPG/PNG→PDF**: accepts multiple images, which can be reordered. Options:
   - page size: fit to image, A4, or Letter
@@ -247,7 +249,7 @@ When a job fails, the job status carries `TIMEOUT`, `CONVERSION_FAILED`, or `ENC
   - the job lifecycle with a stubbed queue
   - 404 after the sweeper runs
 - **Worker**: pytest integration tests run inside the worker image. Real LibreOffice, Ghostscript, and pdf2docx process small fixtures, and the tests assert that each output is a valid PDF or DOCX with the expected page count. They also cover the timeout path.
-- **E2E**: Playwright against `docker compose up`, with one happy path per tool (14 in total).
+- **E2E**: Playwright against `docker compose up`, with one happy path per tool (15 in total).
 - **Entry point**: `make test` runs all suites locally. CI is out of scope.
 
 ## 10. Repository layout

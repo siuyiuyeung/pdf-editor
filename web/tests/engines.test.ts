@@ -3,7 +3,7 @@ import { engines } from '@/lib/pdf/engines';
 import { input, makeEncryptedPdf, makePdf, makePng, tinyJpeg } from './helpers';
 
 test('registry exposes the worker engines', () => {
-  expect(Object.keys(engines).sort()).toEqual(['annotate', 'imageToPdf', 'merge', 'rotate', 'split', 'validate', 'watermark']);
+  expect(Object.keys(engines).sort()).toEqual(['annotate', 'crop', 'imageToPdf', 'merge', 'rotate', 'split', 'validate', 'watermark']);
 });
 
 test('validate passes good PDFs and returns no output', async () => {
