@@ -50,3 +50,16 @@ test('validate rejects unknown extensions instead of treating them as images', a
     code: 'UNSUPPORTED_TYPE',
   });
 });
+
+test('validate accepts RTF and HTML exports saved as .doc or .xls', async () => {
+  const enc = (s: string) => new TextEncoder().encode(s);
+  const files = [
+    input('a.doc', enc(String.raw`{\rtf1\ansi hi}`)),
+    input('b.xls', enc('\r\n<!DOCTYPE html><table></table>')),
+    input('c.xls', enc('<?xml version="1.0"?><Workbook/>')),
+    input('d.doc', Uint8Array.from([0xef, 0xbb, 0xbf, ...enc('<html><body>x')])),
+  ];
+  expect(await engines.validate(files, {})).toEqual([]);
+  await expect(engines.validate([input('e.ppt', enc(String.raw`{\rtf1`))], {})).rejects.toMatchObject({ code: 'INVALID_DOCUMENT' });
+  await expect(engines.validate([input('f.docx', enc('<html>'))], {})).rejects.toMatchObject({ code: 'INVALID_DOCUMENT' });
+});

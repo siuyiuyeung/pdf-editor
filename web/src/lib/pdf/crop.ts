@@ -24,6 +24,25 @@ export function cropBoxFor(box: Box, rotation: number, rect: CropRect): Box {
   return { x: Math.min(ax, bx), y: Math.min(ay, by), width: Math.abs(bx - ax), height: Math.abs(by - ay) };
 }
 
+const normalize = (b: Box): Box => ({
+  x: Math.min(b.x, b.x + b.width),
+  y: Math.min(b.y, b.y + b.height),
+  width: Math.abs(b.width),
+  height: Math.abs(b.height),
+});
+
+/** The area viewers actually show: the CropBox clipped to the MediaBox, with inverted boxes normalised. */
+export function visibleBox(cropBox: Box, mediaBox: Box): Box {
+  const c = normalize(cropBox);
+  const m = normalize(mediaBox);
+  const x = Math.max(c.x, m.x);
+  const y = Math.max(c.y, m.y);
+  const right = Math.min(c.x + c.width, m.x + m.width);
+  const top = Math.min(c.y + c.height, m.y + m.height);
+  // A CropBox entirely outside the MediaBox is invalid; viewers fall back to the MediaBox.
+  return right > x && top > y ? { x, y, width: right - x, height: top - y } : m;
+}
+
 export const crop: Engine<CropOptions> = async (inputs, { rect, pages }) => {
   const file = single(inputs);
   const doc = await loadPdf(file);
@@ -43,7 +62,7 @@ export const crop: Engine<CropOptions> = async (inputs, { rect, pages }) => {
   }
   for (const index of targets) {
     const page = doc.getPage(index);
-    const b = cropBoxFor(page.getCropBox(), page.getRotation().angle, rect);
+    const b = cropBoxFor(visibleBox(page.getCropBox(), page.getMediaBox()), page.getRotation().angle, rect);
     page.setCropBox(b.x, b.y, b.width, b.height);
   }
   return [{ name: `${baseName(file.name)}-cropped.pdf`, bytes: await doc.save(), mime: PDF_MIME }];

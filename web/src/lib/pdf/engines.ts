@@ -17,6 +17,14 @@ const ZIP_EXTS = ['.docx', '.xlsx', '.pptx'];
 const OLE_MAGIC = [0xd0, 0xcf, 0x11, 0xe0, 0xa1, 0xb1, 0x1a, 0xe1];
 const ZIP_MAGIC = [0x50, 0x4b, 0x03, 0x04];
 const startsWith = (bytes: Uint8Array, magic: number[]) => magic.every((b, i) => bytes[i] === b);
+const TEXT_EXPORT_EXTS = ['.doc', '.xls'];
+
+/** Banking/ERP exports are often RTF, HTML or XML saved as .doc/.xls; LibreOffice converts them. */
+function isTextExport(bytes: Uint8Array): boolean {
+  const start = startsWith(bytes, [0xef, 0xbb, 0xbf]) ? 3 : 0;
+  const head = new TextDecoder('latin1').decode(bytes.subarray(start, start + 64)).trimStart().toLowerCase();
+  return [String.raw`{\rtf`, '<html', '<!doctype html', '<?xml', '<table'].some((p) => head.startsWith(p));
+}
 
 /**
  * Checks every input at selection time: PDFs are parsed (ENCRYPTED / INVALID_FILE), images sniffed
@@ -30,7 +38,9 @@ const validate: Engine<Record<string, never>> = async (inputs) => {
     else if (IMAGE_EXTS.includes(ext)) {
       if (!readImageInfo(f.bytes)) throw new PdfToolError('INVALID_IMAGE', `${f.name} isn't a valid JPG or PNG image`);
     } else if (OLE_EXTS.includes(ext) || ZIP_EXTS.includes(ext)) {
-      if (!startsWith(f.bytes, OLE_EXTS.includes(ext) ? OLE_MAGIC : ZIP_MAGIC)) {
+      const ok =
+        startsWith(f.bytes, OLE_EXTS.includes(ext) ? OLE_MAGIC : ZIP_MAGIC) || (TEXT_EXPORT_EXTS.includes(ext) && isTextExport(f.bytes));
+      if (!ok) {
         throw new PdfToolError('INVALID_DOCUMENT', `${f.name} isn't a valid Office document`);
       }
     } else {

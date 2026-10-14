@@ -55,3 +55,18 @@ test('typed errors', async () => {
   await bad({ rect: RECT, pages: [5] });
   await bad({ rect: RECT, pages: [] });
 });
+
+test('an inverted page box is normalised before cropping', async () => {
+  const doc = await PDFDocument.load(await makePdf(1));
+  doc.getPage(0).setMediaBox(200, 300, -200, -300); // stored as [200 300 0 0]
+  doc.getPage(0).setCropBox(200, 300, -200, -300);
+  const [out] = await crop([input('inv.pdf', await doc.save())], { rect: RECT, pages: 'all' });
+  expect(await boxOf(out.bytes)).toEqual([[20, 30, 160, 240]]);
+});
+
+test('a crop box larger than the page is clipped to the page first, as viewers show it', async () => {
+  const doc = await PDFDocument.load(await makePdf(1));
+  doc.getPage(0).setCropBox(-50, -50, 300, 400);
+  const [out] = await crop([input('big.pdf', await doc.save())], { rect: RECT, pages: 'all' });
+  expect(await boxOf(out.bytes)).toEqual([[20, 30, 160, 240]]);
+});

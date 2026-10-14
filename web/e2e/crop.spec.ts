@@ -40,3 +40,13 @@ test('dragging a corner and cropping only the current page', async ({ page }) =>
   expect(first).toBe(400);
   expect(second).toBeLessThan(300);
 });
+
+test('the crop box can be resized with the keyboard', async ({ page }) => {
+  await open(page, 1);
+  const handle = page.getByTestId('crop-handle-se');
+  await handle.focus();
+  for (let i = 0; i < 4; i++) await page.keyboard.press('Shift+ArrowLeft');
+  const [width] = await cropBoxes(page);
+  // Default box is 80% of 400 pt; four 5% steps shrink it to 60% = 240 pt.
+  expect(width).toBe(240);
+});

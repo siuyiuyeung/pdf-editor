@@ -133,3 +133,21 @@ test('a server that keeps failing while polling gives up', async () => {
   });
   await expect(runServerJob('compress-pdf', pdf, {}, undefined, deps)).rejects.toMatchObject({ code: 'UNKNOWN' });
 });
+
+test('a job still waiting in the queue when polling gives up is BUSY, not TIMEOUT', async () => {
+  const { deps } = fakeFetch({
+    'POST /api/jobs': [json({ id: 'abc' }, 202)],
+    'GET /api/jobs/abc': Array.from({ length: 600 }, () => json({ status: 'queued' })),
+    'DELETE /api/jobs/abc': [deleted()],
+  });
+  await expect(runServerJob('compress-pdf', pdf, {}, undefined, deps)).rejects.toMatchObject({ code: 'BUSY' });
+});
+
+test('a job that started converting but never finished is TIMEOUT', async () => {
+  const { deps } = fakeFetch({
+    'POST /api/jobs': [json({ id: 'abc' }, 202)],
+    'GET /api/jobs/abc': Array.from({ length: 600 }, () => json({ status: 'running' })),
+    'DELETE /api/jobs/abc': [deleted()],
+  });
+  await expect(runServerJob('compress-pdf', pdf, {}, undefined, deps)).rejects.toMatchObject({ code: 'TIMEOUT' });
+});

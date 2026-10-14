@@ -109,8 +109,10 @@ export async function runServerJob(
   try {
     let output: JobOutput | undefined;
     let errors = 0;
+    let lastStatus: StatusBody['status'] = 'queued';
     for (let poll = 0; ; poll++) {
-      if (poll >= MAX_POLLS) throw new PdfToolError('TIMEOUT', '');
+      // Still queued after ten minutes means the converter is overloaded, not that this file is slow.
+      if (poll >= MAX_POLLS) throw new PdfToolError(lastStatus === 'queued' ? 'BUSY' : 'TIMEOUT', '');
       let res: Response;
       try {
         res = await send(deps, `/api/jobs/${id}`);
@@ -132,6 +134,7 @@ export async function runServerJob(
         break;
       }
       if (body.status === 'failed') throw toError(file, body.error, 'CONVERSION_FAILED');
+      lastStatus = body.status;
       onPhase(body.status);
       await deps.sleep(POLL_MS);
     }
