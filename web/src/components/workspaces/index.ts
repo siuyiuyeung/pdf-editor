@@ -20,6 +20,8 @@ export interface WorkspaceProps {
   /** Shows an error card above the workspace, e.g. for a bad image picked inside the workspace. */
   onError: (error: PdfToolError) => void;
   busy: boolean;
+  /** Progress label while a server job runs ("Uploading…", "Converting…"); null otherwise. */
+  status?: string | null;
 }
 
 export const WORKSPACES: Record<string, ComponentType<WorkspaceProps>> = {

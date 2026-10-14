@@ -21,6 +21,7 @@ export function ToolShell({ slug }: { slug: string }) {
   const [outputs, setOutputs] = useState<OutputFile[] | null>(null);
   const [error, setError] = useState<PdfToolError | null>(null);
   const [busy, setBusy] = useState(false);
+  const [status, setStatus] = useState<string | null>(null);
   const [validating, setValidating] = useState(false);
   usePreventWindowDrop();
 
@@ -65,10 +66,11 @@ export function ToolShell({ slug }: { slug: string }) {
       setBusy(true);
       setError(null);
       try {
-        setOutputs(await runTool(engine, inputs, opts));
+        setOutputs(await runTool(engine, inputs, opts, setStatus));
       } catch (e) {
         setError(toToolError(e));
       } finally {
+        setStatus(null);
         setBusy(false);
       }
     },
@@ -110,6 +112,7 @@ export function ToolShell({ slug }: { slug: string }) {
           onError={setError}
           run={run}
           busy={busy || validating}
+          status={status}
         />
       )}
     </section>
