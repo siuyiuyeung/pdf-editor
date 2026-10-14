@@ -1,0 +1,2 @@
+pdf2docx==0.5.13
+PyMuPDF==1.28.2
