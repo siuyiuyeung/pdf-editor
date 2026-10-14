@@ -19,6 +19,8 @@ const defaultDeps: JobDeps = {
 const POLL_MS = 1000;
 /** Ten minutes of polling; the slowest converter times out after 2 minutes. */
 const MAX_POLLS = 600;
+/** Consecutive 5xx / network failures tolerated while polling (an API or Redis restart). */
+const MAX_POLL_ERRORS = 5;
 
 interface ServerError {
   code?: string;
@@ -106,11 +108,24 @@ export async function runServerJob(
 
   try {
     let output: JobOutput | undefined;
+    let errors = 0;
     for (let poll = 0; ; poll++) {
       if (poll >= MAX_POLLS) throw new PdfToolError('TIMEOUT', '');
-      const res = await send(deps, `/api/jobs/${id}`);
+      let res: Response;
+      try {
+        res = await send(deps, `/api/jobs/${id}`);
+      } catch (e) {
+        if (++errors > MAX_POLL_ERRORS) throw e;
+        await deps.sleep(POLL_MS);
+        continue;
+      }
       if (res.status === 404) throw new PdfToolError('EXPIRED', '');
+      if (res.status >= 500 && ++errors <= MAX_POLL_ERRORS) {
+        await deps.sleep(POLL_MS);
+        continue;
+      }
       if (!res.ok) throw new PdfToolError('UNKNOWN', `Server error (${res.status})`);
+      errors = 0;
       const body = (await res.json()) as StatusBody;
       if (body.status === 'done') {
         output = body.output;

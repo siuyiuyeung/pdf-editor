@@ -2,7 +2,9 @@ services:
   web:
     build: ./web
     ports:
-      - "3000:3000"
+      # Loopback by default: the API trusts CF-Connecting-IP, so only the local cloudflared may reach web.
+      # Set WEB_BIND=0.0.0.0 only if cloudflared runs elsewhere and the port is firewalled to it.
+      - "${WEB_BIND:-127.0.0.1}:3000:3000"
     depends_on:
       - api
     networks: [frontend]

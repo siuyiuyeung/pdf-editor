@@ -73,7 +73,7 @@ Sweeper             Deletes job dirs older than 1 hour, runs every 10 minutes
 ### Deployment
 
 - `docker compose` services: `web`, `api`, `worker`, `redis`, `sweeper`.
-- Only `web:3000` is published to the host. The owner points `cloudflared` at `http://<host>:3000`.
+- Only `web:3000` is published to the host, bound to `127.0.0.1` by default (`WEB_BIND` overrides it). The owner points `cloudflared` on the same host at `http://localhost:3000`; if `cloudflared` runs elsewhere, set `WEB_BIND=0.0.0.0` and firewall port 3000 to it, because the rate limit trusts `CF-Connecting-IP`.
 - `api`, `redis`, and `worker` live on internal Docker networks only. `worker` has no outbound network access.
 - TLS and public DNS are handled by Cloudflare. The compose file has no reverse proxy.
 - Cloudflare constraints that the design respects:

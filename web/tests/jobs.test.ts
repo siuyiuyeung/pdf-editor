@@ -109,3 +109,27 @@ test('a network failure is NETWORK', async () => {
   };
   await expect(runServerJob('compress-pdf', pdf, {}, undefined, deps)).rejects.toMatchObject({ code: 'NETWORK' });
 });
+
+test('transient server errors while polling are retried', async () => {
+  const { deps } = fakeFetch({
+    'POST /api/jobs': [json({ id: 'abc' }, 202)],
+    'GET /api/jobs/abc': [
+      new Response('upstream down', { status: 500 }),
+      new Response('bad gateway', { status: 502 }),
+      json({ status: 'done', output: { name: 'r.pdf', size: 3, inputSize: 12 } }),
+    ],
+    'GET /api/jobs/abc/file': [new Response(new Uint8Array([1, 2, 3]), { headers: { 'content-type': 'application/pdf' } })],
+    'DELETE /api/jobs/abc': [deleted()],
+  });
+  const [out] = await runServerJob('compress-pdf', pdf, {}, undefined, deps);
+  expect([...out.bytes]).toEqual([1, 2, 3]);
+});
+
+test('a server that keeps failing while polling gives up', async () => {
+  const { deps } = fakeFetch({
+    'POST /api/jobs': [json({ id: 'abc' }, 202)],
+    'GET /api/jobs/abc': Array.from({ length: 6 }, () => new Response('down', { status: 503 })),
+    'DELETE /api/jobs/abc': [deleted()],
+  });
+  await expect(runServerJob('compress-pdf', pdf, {}, undefined, deps)).rejects.toMatchObject({ code: 'UNKNOWN' });
+});
