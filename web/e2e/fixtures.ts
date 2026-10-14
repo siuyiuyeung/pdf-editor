@@ -1,5 +1,7 @@
+import { randomBytes } from 'node:crypto';
 import { readFile } from 'node:fs/promises';
 import type { Download, Page } from '@playwright/test';
+import { PDFDocument } from 'pdf-lib';
 import { makeEncryptedPdf, makePdf, makePng, tinyJpeg } from '../tests/helpers';
 
 type Upload = { name: string; mimeType: string; buffer: Buffer };
@@ -31,4 +33,12 @@ export function pngUpload(name: string, width: number, height: number): Upload {
 
 export function jpgUpload(name: string): Upload {
   return { name, mimeType: 'image/jpeg', buffer: Buffer.from(tinyJpeg()) };
+}
+
+/** A one-page PDF padded to roughly `megabytes` with an incompressible attachment. */
+export async function bigPdfUpload(name: string, megabytes: number): Promise<Upload> {
+  const doc = await PDFDocument.create();
+  doc.addPage([200, 300]);
+  await doc.attach(randomBytes(megabytes * 1024 * 1024), 'padding.bin', { mimeType: 'application/octet-stream' });
+  return { name, mimeType: 'application/pdf', buffer: Buffer.from(await doc.save()) };
 }

@@ -17,10 +17,8 @@ test('server engine exactly for compress and office tools', () => {
   expect(server).toEqual(['compress-pdf', 'excel-to-pdf', 'pdf-to-word', 'powerpoint-to-pdf', 'word-to-pdf']);
 });
 
-test('enabled tools', () => {
-  expect(TOOLS.filter((t) => t.available).map((t) => t.slug).sort()).toEqual([
-    'crop-pdf', 'edit-pdf', 'image-to-pdf', 'merge-pdf', 'pdf-to-jpg', 'pdf-to-png', 'rotate-pdf', 'sign-pdf', 'split-pdf', 'watermark-pdf',
-  ]);
+test('every tool is enabled', () => {
+  expect(TOOLS.filter((t) => !t.available)).toEqual([]);
 });
 
 test('accept lists are lowercase dotted extensions', () => {

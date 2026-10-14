@@ -8,6 +8,13 @@ import { ImageToPdfWorkspace } from './ImageToPdfWorkspace';
 import { MergeWorkspace } from './MergeWorkspace';
 import { PdfToJpgWorkspace, PdfToPngWorkspace } from './PdfToImageWorkspace';
 import { RotateWorkspace } from './RotateWorkspace';
+import {
+  CompressWorkspace,
+  ExcelToPdfWorkspace,
+  PdfToWordWorkspace,
+  PowerpointToPdfWorkspace,
+  WordToPdfWorkspace,
+} from './ServerWorkspaces';
 import { SignWorkspace } from './SignWorkspace';
 import { SplitWorkspace } from './SplitWorkspace';
 import { WatermarkWorkspace } from './WatermarkWorkspace';
@@ -35,4 +42,9 @@ export const WORKSPACES: Record<string, ComponentType<WorkspaceProps>> = {
   'watermark-pdf': WatermarkWorkspace,
   'sign-pdf': SignWorkspace,
   'edit-pdf': EditWorkspace,
+  'compress-pdf': CompressWorkspace,
+  'word-to-pdf': WordToPdfWorkspace,
+  'excel-to-pdf': ExcelToPdfWorkspace,
+  'powerpoint-to-pdf': PowerpointToPdfWorkspace,
+  'pdf-to-word': PdfToWordWorkspace,
 };
